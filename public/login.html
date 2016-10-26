@@ -7,15 +7,18 @@
   </head>
   <body>
     <h1>Login</h1>
-    <form method="post" action="/login">
+    <form>
       <p><label for="username">Username:</label>
-        <input type="text" id="username" name="username" />
+        <input type="text" id="username" name="username" required="required" />
       </p>
       <p>
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" />
+        <input type="password" id="password" name="password" required="required" />
       </p>
       <input type="submit" />
     </form>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="login.js"></script>
   </body>
 </html>

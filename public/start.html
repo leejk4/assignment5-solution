@@ -7,10 +7,10 @@
   </head>
   <body>
     <h1>Start</h1>
-    <form method="post" action="/start">
+    <form>
       <p>
-        <label for="variant">Variant:</label>
-        <select id="variant" name="variant">
+        <label for="type">Type:</label>
+        <select id="type" name="type">
           <option value="klondike">Klondike</option>
           <option value="pyramid">Pyramid</option>
           <option value="canfield">Canfield</option>
@@ -19,11 +19,14 @@
         </select>
       </p>
       <p>
-        <label for="draw_number">Draw Number:</label>
-        <input type="radio" name="draw_number" value="1" checked> One Card
-        <input type="radio" name="draw_number" value="3"> Three Cards
+        <label for="draw_num">Draw Number:</label>
+        <input type="radio" name="draw_num" value="1" checked> One Card
+        <input type="radio" name="draw_num" value="3"> Three Cards
       </p>
       <input type="submit" />
     </form>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="start.js"></script>
   </body>
 </html>
