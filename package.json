@@ -1,0 +1,26 @@
+{
+  "name": "webdev",
+  "version": "1.0.0",
+  "description": "assignment2",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "morgan": "^1.7.0",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vu-cs4288-01-f16/assignment2-solution.git"
+  },
+  "author": "sampepose",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vu-cs4288-01-f16/assignment2-solution/issues"
+  },
+  "homepage": "https://github.com/vu-cs4288-01-f16/assignment2-solution#readme"
+}
