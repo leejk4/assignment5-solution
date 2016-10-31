@@ -1,44 +1,88 @@
-### Overview
-For this assignment you are going to be adding Javascript to your client to enhance its behavior.  Listed below are the enhancement you need to make.  Carefully follow the directions and submit a ZIP of all of the needed files to Blackboard.  A new server file has been created for you.  Make sure you use it instead of the one supplied last assignment.
+#Overview
 
-You are primarily adding Javascript to your pages.  You should write all of the JS in separate files from the HTML.  Beyond calling functions from events, you should not have JS in your HTML.  Use of jQuery or other 3rd party libraries is encouraged but not required.
-
-### Enhancements
-#### Better user feedback in Login, Register and Create Game
-
-We need our pages to work better and actually validate the user’s inputs.  We have three forms that need validation support: login, register, and create game.  
-
-For the Login form, change the behavior to not submit using the default form behavior.  Instead capture the button click and perform an AJAX POST request to the path /v1/session with a JSON body.  The data should contain the username and password the user entered into the form.  The response from the server will either be a 201 CREATED and some additional user information, or a 4XX error meaning that the user did not provide a valid username/password.  On a 201, do a client-side redirect (Google window.location) to /start.html.  On a 4XX error, display a nice error message in the login window to let the user know login failed.
-
-For the Register page we want to make sure the user is entering information in the right format.  Validate that their username is between 6-16 characters and contains only alphanumeric characters.  The password should also be greater than 8 characters and contain a lower-case, an upper-case, a number and a symbol.  The primary email address should be a valid looking email address.  Just like the Login page, capture the Submit button click and perform an AJAX POST to /v1/user and look for either a 201 CREATED, or a 4XX error.  On success, redirect to /profile.html?username=***newusername***.  Of course, replace with the appropriate new user name.
-
-Follow the same instructions for the Create Game page.  It should validate all any appropriate inputs and perform an AJAX POST to /v1/game and look for the return status code.  On success redirect to /game.html?id=***newgameid***.  The newgameid value will be returned in a successful AJAX response.
-
-5 bonus points if the transition from the forms to the next pages are animated in someway, such as swooshing left or right.
-
-#### Data for our Profiles and Game Reviews
-
-With the above directions in mind, hopefully you see what is coming here.  Now the profile and game pages are really just templates.  Once the pages have loaded, get the ID parameters from the query string.  I.e. from ?username=foo get foo.  Use this to perform an AJAX query to fetch data from the server with GET requests to /v1/user/***username*** and /v1/game/***planid***.  Get the JSON back from the server and populate the pages appropriately.
-
-#### Clicky, clicky in our Cards
-
-There are a number of events we want to recognize  in the game view, but for now let’s focus on clicking and dragging cards.  Do the following incrementally, to build up your understanding of how user events can be handled within your javascript code.  All of these activities should be within your main game page.
-
-1. When a user’s mouse is clicked down, print to the console the X, Y screen location of the mouse.
-2. Do the same when a user releases the mouse button
-3. If the user clicks and drags the mouse, print out a drag distance in pixels
-4. Identify which card the user has clicked on and print out it's identity
-5. If the user clicks on the card located in the center of the screen they can click-drag it and it will move around following the mouse
-
-5 bonus points if the user can click and drag any of the 17 cards on the screen
+For this assignment you are to continuing to expand on the card game playing application we built in Assignments #1 and #2.  Listed below are the requirements for the specific enhancements you need to make and how they will be graded.  Follow the directions closely and the site will that much closer to being usable.
 
 
-#### Application Landing Page
-Create a simple landing page for the / path.  It must have links to the Register and Login pages.  Add any additional marketing type of material, be creative.  It doesn't have to be fancy, but should look nice.
-5 bonus points will be awarded to the single best looking Landing Page as judged by myself and the TA.  This is completely subjective.
+##Enhancements
 
-### Grading Criteria
-Every page’s enhancements are worth equal points, except for the main game screen, it's worth double.  Meet the description above and you get all of the points.  As functionality isn't working, visual styling is not as desired, or things are simply missing, points will be deducted.
+###A. Standard Structure \& Submission using GitHub
 
-### Submission
-Gather all of your files and zip them into an archive.  Then, please submit a ZIP archive to Blackboard.
+ * I will send out a link via email that you must follow to create a GitHub repository specific to this assignment.  Clicking on the link will have automatically forked this repo as your starting point.  You must commit and push all of your changes to your personal repo by the assignment deadline.  We will not accept any submissions via Blackboard, email, or anything else.  ONLY GITHUB submissions will be accepted.
+
+ * Since I am providing you with a common starting point, your project structure will also be standardized.  Look at the directory hierarchy.  You should follow this structure and not alter it.
+
+
+###B. Get your game on!!
+
+We need to start building actual card playing logic and capabilities into our application.  So, lets start small and build up over the next few assignments.  Here is what you need to enable:
+
+* Build a new server-side route (GET /v1/game/shuffle?jokers=false) - The jokers false query parameter indicates we only want 52 cards, not including any jokers.  The return from this call should be a JSON array that is a randomized set of shuffled cards.  This route should be in its own module that is imported using ```require``` in your index.js. The returned JSON array should be of the following form:
+
+```
+[{ "suit": "clubs", "value": 7 }, { "suit": "diamonds", "value": 12 }, ... ]
+```
+
+* We need to start laying out the cards according to the game we want to play.  The first game we will attempt to implement will be simple [Klondike Solitare](https://en.wikipedia.org/wiki/Klondike_(solitaire)).  When your game.html page loads it should fetch a randomized deck from the server (see above point).  With the deck in hand, build a client-side JSON data structure that encodes the initial state of your Klondike game.  You must follow the rules of the game in terms of how many cards go in each pile, which are face up or down, etc.  Save this structure into localStorage.  It should look something like this:
+ 
+ ```
+{
+     pile1: [{"suit": "clubs", "value": 7, "up": false}, {"suit": "diamonds", "value": 12, "up": false}, ...],
+     pile2: [...],
+     ...
+     pile7: [...],
+     stack1: [...],
+     ...
+     stack4: [...],
+     draw: [...],
+     discard: [...]
+}
+```
+
+* Lastly, using the above data structure, render the game onto the game.html page with cards in the appropriate places according to the game rules.  Cards should face up and down correctly and the overall game page should layout like the Klondike game shown in the wiki page.
+
+
+###C. Add client-side state
+
+The game screen is not your entire application.  We need to build the rest of our application to support it.  So, we need to enable all of the normal functions our users expect.  For example, once a user logs in, they should be recognized as logged in until they log out.  This awareness should persist even on reload of the browser.
+
+Here are the criteria for this task:
+
+* On the profile page show a link to the register and login pages by default.  If a person has logged in, remove these links and replace it with the person's Gravatar icon (based on their email address).  If logged in, they should also have a link to log out (though this will not do anything for now).
+
+* On the profile page, we want a user to be able to edit their profile.  So, on the profile page, if the profile is for the same username as the one the user is logged in as, make an edit button visible.  This button should navigate the user to /edit.html.  For now, nothing needs to actually be at this address.
+
+* Only let a logged-in user go to the start page to initiate a new game.  Have the start.html page check if a user is logged in.  If not, automatically redirect them to the login.html page.  The profile.html page should also only display the link to the start.html page if the user is logged in.
+
+
+
+###D. Build your server-side pipeline
+
+We have a lot to do on the server side, so let's get started.  First, we need to get our ExpressJS pipeline up to speed.  
+
+Here are the criteria for this task:
+
+* Ensure logging is in the pipeline and start using it.  Check out the Morgan module for ExpressJS.  We want to log all non-static requests.  I.e. if the request is for something outside of the public folder, log it to the console.  We don't want anything logged for static requests.  Add some logging output for the shuffle route discussed above.
+
+* Add session support.  Use a simple configuration of the express-session module.  We don't need a fancy session store (like Redis).  Just use the default in-memory store.  This isn't ideal, but we will improve on it.  Have sessions expire after 30 days.  We want to easily be able to identify if a session has authenticated or not.  Add ```username``` to the session with the appropriate value once a user logs in.
+
+
+###E. Make life easy for Sam
+
+Let's make life easy for our dear grader.  I have given you a shell of the package.json file in this repo.  You need to complete it so that the grader follow these steps to have your application running:
+
+* Clone student's repo
+* Run ```npm install``` and all dependencies are installed
+* Run ```npm start``` and the web app is running
+* Navigate to localhost:8080 and the grader is on the landing page
+
+Your repo must be compliant with these steps.  It is easy to practice this on your local machine to ensure you have everything in the right place.
+
+
+##Grading Criteria:
+
+Each requirement is worth 1/6 of the total points, so 16.66 points.  Except for requirement B, this is worth double.  Meet the description above and you get all of the points.  As functionality isn't working, visual styling is not as desired, or things are simply missing, points will be deducted.
+
+
+##Submission:
+
+As mentioned above, you must submit by committing and pushing your repo to GitHub.  PERIOD.

@@ -3,12 +3,12 @@
 let express         = require('express'),
     bodyParser      = require('body-parser'),
     logger          = require('morgan'),
-    _               = require('underscore');
+    _               = require('lodash');
 
 
 let app = express();
-app.use(express.static('public'));
 app.use(logger('combined'));
+app.use(express.static('public'));
 app.use(bodyParser.json({}));
 app.use(bodyParser.urlencoded({ extended: true }));
 
