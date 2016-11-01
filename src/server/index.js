@@ -3,7 +3,9 @@
 let express         = require('express'),
     bodyParser      = require('body-parser'),
     logger          = require('morgan'),
-    _               = require('lodash');
+    _               = require('lodash'),
+    shuffleCards    = require('./shuffleCards');
+
 
 
 let app = express();
@@ -97,6 +99,11 @@ app.post('/v1/game', function(req, res) {
             planid: newGame.id
         });
     }
+});
+
+app.get('/v1/game/shuffle', function(req, res) {
+  const jokers = req.query.jokers === 'true';
+  res.status(200).send(shuffleCards(jokers));
 });
 
 // Handle GET to fetch game information
