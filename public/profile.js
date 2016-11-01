@@ -20,18 +20,18 @@ $(document).ready(function() {
     console.error(err);
   });
 
-
   if (loggedIn()) {
-    $('a#register').hide();
-    $('a#login').hide();
     $('a#logout').show();
     $('a#start').show();
+
     const email = localStorage.getItem('email');
     $('img#my_gravitar').attr('src', getGravitarURL(email)).show();
+
+    if (username === localStorage.getItem('username')) {
+      $('a#edit').css('display', 'block');
+    }
   } else {
     $('a#register').show();
     $('a#login').show();
-    $('a#logout').hide();
-    $('a#start').hide();
   }
 });

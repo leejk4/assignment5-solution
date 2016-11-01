@@ -51,3 +51,8 @@ div.header > a, div.header > img {
 div.header > img {
   height: 35px;
 }
+
+a#edit {
+  text-align: center;
+  display: none;
+}
