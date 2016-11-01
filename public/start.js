@@ -1,6 +1,10 @@
 'use strict';
 
 $(document).ready(function() {
+  if (!loggedIn()) {
+    window.location = '/login.html';
+  }
+
   $('form').submit(function(e) {
     e.preventDefault();
 

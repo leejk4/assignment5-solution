@@ -1,22 +1,5 @@
 'use strict';
 
-// http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-function getParameterByName(name, url) {
-    if (!url) {
-      url = window.location.href;
-    }
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
-}
-
-const loggedIn = () => {
-  return localStorage.getItem('username') !== null;
-};
-
 const getGravitarURL = (email) => {
   const hash = md5(email.trim().toLowerCase());
   return `https://www.gravatar.com/avatar/${hash}`;
@@ -42,11 +25,13 @@ $(document).ready(function() {
     $('a#register').hide();
     $('a#login').hide();
     $('a#logout').show();
+    $('a#start').show();
     const email = localStorage.getItem('email');
     $('img#my_gravitar').attr('src', getGravitarURL(email)).show();
   } else {
     $('a#register').show();
     $('a#login').show();
     $('a#logout').hide();
+    $('a#start').hide();
   }
 });
