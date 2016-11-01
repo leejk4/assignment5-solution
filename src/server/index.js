@@ -3,16 +3,23 @@
 let express         = require('express'),
     bodyParser      = require('body-parser'),
     logger          = require('morgan'),
-    _               = require('lodash'),
-    shuffleCards    = require('./shuffleCards');
+    _               = require('underscore'),
+    shuffleCards    = require('./shuffleCards'),
+    session         = require('express-session');
 
 
 
 let app = express();
-app.use(logger('combined'));
 app.use(express.static('public'));
+app.use(logger('combined'));
 app.use(bodyParser.json({}));
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 }
+}));
 
 
 let users = [
@@ -31,12 +38,14 @@ app.post('/v1/session', function(req, res) {
     if (!req.body || !req.body.username || !req.body.password) {
         res.status(400).send({ error: 'username and password required' });
     } else {
+        console.log(req.session);
         let user = _.findWhere(users, { username: req.body.username.toLowerCase() });
         if (!user || user.password !== req.body.password) {
             if (user) console.log('It the password: ' + user.password + ' vs. ' + req.body.password);
             else console.log('No user found: ' + req.body.username);
             res.status(401).send({ error: 'unauthorized' });
         } else {
+            req.session.username = user.username;
             res.status(201).send({
                 username:       user.username,
                 primary_email:  user.primary_email

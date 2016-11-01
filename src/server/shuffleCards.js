@@ -1,6 +1,6 @@
 'use strict';
 
-const _ = require('lodash');
+const _ = require('underscore');
 
 const CARDS = [
   { 'suit': 'clubs', 'value': 'Ace' },
