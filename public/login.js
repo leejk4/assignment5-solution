@@ -11,9 +11,13 @@ $(document).ready(function() {
     $.post('/v1/session', formData)
     .done((result) => {
       window.location = 'start.html';
+      localStorage.setItem('username', result.username);
+      localStorage.setItem('email', result.primary_email);
     })
     .fail((err) => {
       alert('Could not authenticate user. Please try again.');
+      localStorage.setItem('username', null);
+      localStorage.setItem('email', null);
       console.error(err);
     });
   });

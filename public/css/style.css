@@ -27,3 +27,27 @@ form > p > input { display: table-cell; }
   text-align: center;
 }
 table { margin: 0 auto; }
+
+/* profile.html */
+div.header {
+  height: 37px;
+}
+
+div.header > h1 {
+  display: inline;
+}
+
+div.header > a {
+  line-height: 37px;
+}
+
+div.header > a, div.header > img {
+  float: right;
+  margin-left: 5px;
+  /* Initially hide all dynamic links and 'my gravitar' image */
+  display: none;
+}
+
+div.header > img {
+  height: 35px;
+}
