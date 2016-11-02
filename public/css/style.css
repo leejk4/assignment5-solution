@@ -1,15 +1,6 @@
 img.card {
-  float: left;
-  width: 25%;
-}
-
-img.card.center {
-  bottom: 0;
-  left: 0;
-  margin: 50% auto auto auto;
   position: absolute;
-  right: 0;
-  top: 0;
+  width: 200px;
 }
 
 div.game-links {

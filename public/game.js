@@ -25,6 +25,41 @@ const constructKlondike = (cards) => {
   return gameState;
 };
 
+const generateCardImg = (card, row, col, stackCount = 0) => {
+  const imgURL = card.up ? `img/${card.value}_of_${card.suit}.png` : 'img/card_back.png';
+  const CARD_WIDTH = 200;
+  const CARD_HEIGHT = 290;
+  const CELL_PADDING = 25;
+  const top = (CARD_HEIGHT + CELL_PADDING) * row + CELL_PADDING + (stackCount * 20);
+  const left = (CARD_WIDTH + CELL_PADDING) * col + CELL_PADDING;
+  return `<img class='card' src='${imgURL}' style='top:${top}px;left:${left}px;' />`;
+};
+
+const layoutKlondike = (gameState) => {
+  // It's faster to build up the HTML and only alter the DOM once.
+  let gameContent = '';
+  gameState.draw.forEach(card => {
+    gameContent += generateCardImg(card, 0, 0);
+  });
+  gameState.discard.forEach(card => {
+    gameContent += generateCardImg(card, 0, 1);
+  });
+  for (let i = 1; i < 5; i++) {
+    const key = `stack${i}`;
+    gameState[key].forEach(card => {
+      gameContent += generateCardImg(card, 0, i + 2);
+    });
+  }
+  for (let i = 1; i < NUM_PILES + 1; i++) {
+    const key = `pile${i}`;
+    gameState[key].forEach((card, idx) => {
+      gameContent += generateCardImg(card, 1, i - 1, idx);
+    });
+  }
+  $('div#game').html(gameContent);
+  $('img').draggable();
+};
+
 $(document).ready(function() {
   let startX, startY;
 
@@ -53,19 +88,17 @@ $(document).ready(function() {
     console.log(`Clicked card: ${cardName}`);
   });
 
-  $('img').draggable();
-
   // Fetch random deck from server
   $.ajax({
     type: 'get',
     url: '/v1/game/shuffle?jokers=false',
     success: (cards) => {
       const gameState = constructKlondike(cards);
-      console.log(gameState);
+      layoutKlondike(gameState);
       localStorage.setItem('gameState', JSON.stringify(gameState));
     },
     error: (xhr, status, error) => {
-
+      alert('Error retrieving shuffled cards.');
     },
   });
 });
