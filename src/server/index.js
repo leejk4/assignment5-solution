@@ -7,7 +7,8 @@ let express         = require('express'),
     shuffleCards    = require('./shuffleCards'),
     session         = require('express-session');
 
-
+const Users = require('./db').Users;
+const Games = require('./db').Games;
 
 let app = express();
 app.use(express.static('public'));
@@ -20,7 +21,6 @@ app.use(session({
   saveUninitialized: true,
   cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 }
 }));
-
 
 let users = [
     { username: 'tumbler', password: 'WBush', first_name: 'George', last_name: 'Bush', primary_email: 'decider@bush2.com' },
