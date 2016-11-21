@@ -36,42 +36,66 @@ let games = [];
 // Handle POST to create a user session
 app.post('/v1/session', function(req, res) {
     if (!req.body || !req.body.username || !req.body.password) {
-        res.status(400).send({ error: 'username and password required' });
+      res.status(400).send({ error: 'username and password required' });
     } else {
-        console.log(req.session);
-        let user = _.findWhere(users, { username: req.body.username.toLowerCase() });
-        if (!user || user.password !== req.body.password) {
-            if (user) console.log('It the password: ' + user.password + ' vs. ' + req.body.password);
-            else console.log('No user found: ' + req.body.username);
-            res.status(401).send({ error: 'unauthorized' });
+      Users.findOne({username: req.body.username}, (err, user) => {
+        if (err) {
+          console.error(err);
+          res.status(400).send({ error: 'Error signing in user' });
         } else {
-            req.session.username = user.username;
-            res.status(201).send({
-                username:       user.username,
-                primary_email:  user.primary_email
+          if (user) {
+            user.comparePassword(req.body.password, (err, isMatch) => {
+              if (err || !isMatch) {
+                console.error(err);
+                res.status(400).send({ error: 'Error signing in user' });
+              } else {
+                req.session.username = user.username;
+                res.status(201).send({
+                    username:       user.username,
+                    primary_email:  user.primary_email
+                });
+              }
             });
+          } else {
+            res.status(400).send({ error: 'Error signing in user' });
+          }
         }
+      });
     }
 });
 
 // Handle POST to create a new user account
 app.post('/v1/user', function(req, res) {
-    let data = req.body;
-    if (!data || !data.username || !data.password || !data.first_name || !data.last_name || !data.primary_email) {
-        res.status(400).send({ error: 'username, password, first_name, last_name and primary_email required' });
-    } else {
-        let user = _.findWhere(users, { username: data.username.toLowerCase() });
-        if (user) {
-            res.status(400).send({ error: 'username already in use' });
-        } else {
-            let newUser = _.pick(data, 'username', 'first_name', 'last_name', 'password', 'dob', 'address_street', 'address_city', 'address_state', 'address_zip', 'primary_phone', 'primary_email');
-            users.push(newUser);
-            res.status(201).send({
-                username:       data.username,
-                primary_email:  data.primary_email
-            });
-        }
+    let user = req.body;
+
+    // Ensure all required fields are included
+    const hasRequiredFields = ['username', 'first_name', 'last_name', 'primary_email']
+      .every(property => user.hasOwnProperty(property));
+    if (!hasRequiredFields) {
+      return res.status(400).send({ error: 'Invalid payload' });
     }
+
+    // Verify the password is correct before we hash it (Mongoose does this, see db.js)
+    const LOWER_UPPER_NUM_AND_SYMBOL_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(_|[^\w])).+$/;
+    if (user.password.length < 8 || !user.password.match(LOWER_UPPER_NUM_AND_SYMBOL_REGEX)) {
+      return res.status(400).send({ error: 'Invalid password format' });
+    }
+
+    // Create the User in the database
+    new Users(user).save((err, user) => {
+      if (err) {
+        console.error(err);
+        res.status(400).send({ error: 'Error creating user' });
+      } else {
+        // Add the proper session data
+        req.session.username = user.username;
+
+        res.status(201).send({
+          username: user.username,
+          primary_email: user.primary_email,
+        });
+      }
+    });
 });
 
 // Handle GET to fetch user information

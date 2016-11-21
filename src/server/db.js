@@ -1,8 +1,12 @@
 'use strict';
 
-const VUNETID = 'peposesf';
+const bcrypt = require('bcrypt');
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema;
+
+const VUNETID = 'peposesf';
+// http://security.stackexchange.com/questions/17207/recommended-of-rounds-for-bcrypt
+const NUM_SALT_ROUNDS = 15; // really means 2^15 rounds
 
 mongoose.connect(`mongodb://localhost:27017/${VUNETID}`, err => {
   if (err) {
@@ -11,6 +15,7 @@ mongoose.connect(`mongodb://localhost:27017/${VUNETID}`, err => {
   }
 });
 
+// huge credit to Tommy Meisel (thomasameisel) for the schemas :-)
 const userSchema = new Schema({
   username: {
     type: String,
@@ -40,6 +45,23 @@ const userSchema = new Schema({
   address_zip: Number,
   primary_phone: Number,
 });
+
+// Add a 'virtual' field named 'password'. When this value is set, the 'set' cb
+// is called. This cb hashes the password using bcrypt and stores it in the proper
+// 'hashed_password' field. Since the 'password' field is virtual, it is never sent
+// to the client or database.
+userSchema.virtual('password')
+  .set(function(password) {
+    this.hashed_password = bcrypt.hashSync(password, NUM_SALT_ROUNDS);
+  });
+
+// http://stackoverflow.com/questions/14588032/mongoose-password-hashing
+userSchema.methods.comparePassword = function(candidatePassword, cb) {
+  bcrypt.compare(candidatePassword, this.hashed_password, function(err, isMatch) {
+      if (err) return cb(err);
+      cb(null, isMatch);
+  });
+};
 
 const gameSchema = new Schema({
   players: { type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Users'}], required: true },
