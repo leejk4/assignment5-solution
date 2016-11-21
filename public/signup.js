@@ -26,7 +26,7 @@ $(document).ready(function() {
     .done((result) => {
       localStorage.setItem('username', result.username);
       localStorage.setItem('email', result.primary_email);
-      window.location = `/profile.html?username=${result.username}`
+      window.location = `/profile?username=${result.username}`
     })
     .fail((err) => {
       alert('Error signing up. Please try again.');

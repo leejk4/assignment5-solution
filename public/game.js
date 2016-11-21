@@ -63,6 +63,8 @@ const layoutKlondike = (gameState) => {
 $(document).ready(function() {
   let startX, startY;
 
+  $('a#profile').attr('href', `/profile?username=${localStorage.getItem('username')}`);
+
   $('body').mousedown((e) => {
     startX = e.clientX;
     startY = e.clientY;

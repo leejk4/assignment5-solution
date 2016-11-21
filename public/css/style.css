@@ -35,8 +35,6 @@ div.header > a {
 div.header > a, div.header > img {
   float: right;
   margin-left: 5px;
-  /* Initially hide all dynamic links and 'my gravitar' image */
-  display: none;
 }
 
 div.header > img {
@@ -45,5 +43,5 @@ div.header > img {
 
 button#edit {
   margin: 0 auto;
-  display: none;
+  display: block;
 }

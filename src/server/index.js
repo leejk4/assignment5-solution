@@ -5,10 +5,13 @@ let express         = require('express'),
     logger          = require('morgan'),
     _               = require('underscore'),
     shuffleCards    = require('./shuffleCards'),
+    pug             = require('pug'),
+    md5             = require('md5'),
     session         = require('express-session');
 
 const Users = require('./db').Users;
 const Games = require('./db').Games;
+const profileView = pug.compileFile('src/views/profile.pug');
 
 let app = express();
 app.use(express.static('public'));
@@ -50,6 +53,7 @@ app.post('/v1/session', function(req, res) {
                 res.status(400).send({ error: 'Error signing in user' });
               } else {
                 req.session.username = user.username;
+                req.session.primary_email = user.primary_email;
                 req.session.user_id = user._id;
 
                 res.status(201).send({
@@ -91,6 +95,7 @@ app.post('/v1/user', function(req, res) {
       } else {
         // Add the proper session data
         req.session.username = user.username;
+        req.session.primary_email = user.primary_email;
         req.session.user_id = user._id;
 
         res.status(201).send({
@@ -102,8 +107,8 @@ app.post('/v1/user', function(req, res) {
 });
 
 // Handle GET to fetch user information
-app.get('/v1/user/:username', function(req, res) {
-  Users.findOne({username: req.params.username}, (err, user) => {
+app.get('/profile', function(req, res) {
+  Users.findOne({username: req.query.username}, (err, user) => {
     if (err || !user) {
       console.error(err);
       res.status(404).send({ error: 'Error fetching user' });
@@ -112,7 +117,19 @@ app.get('/v1/user/:username', function(req, res) {
       delete user.hashed_password;
       delete user._id;
       delete user.__v;
-      res.status(200).send(user);
+
+      let hash;
+      user.my_gravitar_src = 'https://www.gravatar.com/avatar/?f=y';
+      if (req.session.primary_email) {
+        hash = md5(req.session.primary_email.trim().toLowerCase());
+        user.my_gravitar_src = `https://www.gravatar.com/avatar/${hash}`;
+      }
+      hash = md5(user.primary_email.trim().toLowerCase());
+      user.profile_gravitar_src = `https://www.gravatar.com/avatar/${hash}`;
+      user.can_edit = req.query.username === req.session.username;
+      user.logged_in = !!req.session.username;
+
+      res.status(200).send(profileView(user));
     }
   });
 });
@@ -137,10 +154,9 @@ app.put('/v1/user/:username', function(req, res) {
           console.error(err);
           res.status(400).send({error: 'Error editing user'});
         } else {
-          // User changed their username, so update session info
-          if (req.body.username !== req.session.username) {
-            req.session.username = req.body.username;
-          }
+          // User could have changed their username/password, so update session info
+          req.session.username = req.body.username;
+          req.session.primary_email = req.body.primary_email;
           res.status(200).send();
         }
       });
