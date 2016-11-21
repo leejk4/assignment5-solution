@@ -13,8 +13,6 @@ $(document).ready(function() {
     $(e.target).serializeArray().map(function(x){formData[x.name] = x.value;});
 
     // Set fields the server expects
-    formData.deck_type = 'deck_type';
-    formData.name =  'name';
     formData.num_players = 2;
 
     $.post('/v1/game', formData)
@@ -22,8 +20,15 @@ $(document).ready(function() {
       window.location = `/game.html?id=${result.planid}`
     })
     .fail((err) => {
-      alert('Error starting game. Please try again.');
-      console.error(err);
+      if (err.status === 401) {
+        alert('Unauthorized!');
+        localStorage.removeItem('username');
+        localStorage.removeItem('email');
+        window.location = '/login.html';
+      } else {
+        alert('Error starting game. Please try again.');
+        console.error(err);
+      }
     });
   });
 });

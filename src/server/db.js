@@ -81,11 +81,6 @@ const gameSchema = new Schema({
     min: [1, 'Number of players must be 1 or greater'],
   },
   name: { type: String, required: [true, 'Must specify game name'] },
-  deck_type: {
-    type: String,
-    required: [true, 'Must specify deck type'],
-    enum: ['Blue cards', 'Pink cards', 'Yellow cards', 'Cards with ponies', 'Cards with antelopes'],
-  },
   draw_num: {
     type: Number,
     required: [true, 'Must specify number of cards to draw'],

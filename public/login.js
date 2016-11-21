@@ -16,8 +16,8 @@ $(document).ready(function() {
     })
     .fail((err) => {
       alert('Could not authenticate user. Please try again.');
-      localStorage.setItem('username', null);
-      localStorage.setItem('email', null);
+      localStorage.removeItem('username');
+      localStorage.removeItem('email');
       console.error(err);
     });
   });

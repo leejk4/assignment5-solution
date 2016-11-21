@@ -50,6 +50,8 @@ app.post('/v1/session', function(req, res) {
                 res.status(400).send({ error: 'Error signing in user' });
               } else {
                 req.session.username = user.username;
+                req.session.user_id = user._id;
+
                 res.status(201).send({
                     username:       user.username,
                     primary_email:  user.primary_email
@@ -89,6 +91,7 @@ app.post('/v1/user', function(req, res) {
       } else {
         // Add the proper session data
         req.session.username = user.username;
+        req.session.user_id = user._id;
 
         res.status(201).send({
           username: user.username,
@@ -111,26 +114,37 @@ app.get('/v1/user/:username', function(req, res) {
 
 // Handle POST to create a new game
 app.post('/v1/game', function(req, res) {
-    let data = req.body;
+    if (!req.session.user_id) {
+      return res.status(401).send({ error: 'unauthorized' });
+    }
+
+    const data = req.body;
     if (!data ||
         !data.type ||
         !data.num_players ||
         !data.name ||
-        !data.deck_type ||
         !data.draw_num) {
         res.status(400).send({ error: 'all form fields required' });
     } else {
-        let newGame = _.pick(data, 'type', 'num_players', 'name', 'deck_type', 'draw_num');
-        newGame = _.extend(newGame, {
-            id: Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5),
-            duration: Math.floor(Math.random() * 500),
-            winner: '',
-            points: Math.floor(Math.random() * 100)
-        });
-        games.push(newGame);
-        res.status(201).send({
-            planid: newGame.id
-        });
+      // Create local object representing the new game...
+      let newGame = _.pick(data, 'type', 'num_players', 'name', 'deck_type', 'draw_num');
+      newGame.players = [req.session.user_id];
+      newGame.startDate = Date.now();
+      newGame.creator = req.session.user_id;
+      newGame.turn = req.session.user_id;
+      newGame.state = [];
+
+      // ...and save it in the database
+      new Games(newGame).save((err, game) => {
+        if (err) {
+          console.error(err);
+          res.status(400).send({error: 'Error creating game'});
+        } else {
+          res.status(201).send({
+              planid: game._id
+          });
+        }
+      });
     }
 });
 
