@@ -38,12 +38,6 @@ const userSchema = new Schema({
     },
   },
   hashed_password: { type: String, required: true },
-  dob: String,
-  address_street: String,
-  address_city: String,
-  address_state: String,
-  address_zip: Number,
-  primary_phone: Number,
 });
 
 // Add a 'virtual' field named 'password'. When this value is set, the 'set' cb

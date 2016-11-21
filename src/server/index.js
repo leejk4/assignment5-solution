@@ -103,13 +103,15 @@ app.post('/v1/user', function(req, res) {
 
 // Handle GET to fetch user information
 app.get('/v1/user/:username', function(req, res) {
-    let user = _.findWhere(users, { username: req.params.username.toLowerCase() });
-    if (!user) {
-        res.status(404).send({ error: 'unknown user' });
+  Users.findOne({username: req.params.username}, (err, user) => {
+    if (err || !user) {
+      console.error(err);
+      res.status(404).send({ error: 'Error fetching user' });
     } else {
-        user = _.pick(user, 'username', 'first_name', 'last_name', 'dob', 'address_street', 'address_city', 'address_state', 'address_zip', 'primary_phone', 'primary_email');
-        res.status(200).send(user);
+      user = _.pick(user, 'username', 'first_name', 'last_name', 'dob', 'address_street', 'address_city', 'address_state', 'address_zip', 'primary_phone', 'primary_email');
+      res.status(200).send(user);
     }
+  });
 });
 
 // Handle POST to create a new game

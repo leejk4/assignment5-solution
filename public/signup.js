@@ -24,6 +24,8 @@ $(document).ready(function() {
 
     $.post('/v1/user', formData)
     .done((result) => {
+      localStorage.setItem('username', result.username);
+      localStorage.setItem('email', result.primary_email);
       window.location = `/profile.html?username=${result.username}`
     })
     .fail((err) => {
