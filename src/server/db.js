@@ -4,7 +4,12 @@ const VUNETID = 'peposesf';
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema;
 
-mongoose.connect(`mongodb://localhost:27017/${VUNETID}`);
+mongoose.connect(`mongodb://localhost:27017/${VUNETID}`, err => {
+  if (err) {
+    console.error("ERROR: Could not connect to the mongo db. Is `mongod` running?");
+    process.exit();
+  }
+});
 
 const userSchema = new Schema({
   username: {
