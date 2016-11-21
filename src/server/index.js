@@ -108,8 +108,42 @@ app.get('/v1/user/:username', function(req, res) {
       console.error(err);
       res.status(404).send({ error: 'Error fetching user' });
     } else {
-      user = _.pick(user, 'username', 'first_name', 'last_name', 'dob', 'address_street', 'address_city', 'address_state', 'address_zip', 'primary_phone', 'primary_email');
+      user = user.toJSON();
+      delete user.hashed_password;
+      delete user._id;
+      delete user.__v;
       res.status(200).send(user);
+    }
+  });
+});
+
+// Handle PUT to edit user information
+app.put('/v1/user/:username', function(req, res) {
+  if (req.session.username !== req.params.username) {
+    return res.status(401).send({ error: 'unauthorized' });
+  }
+
+  Users.findOne({username: req.params.username}, (err, user) => {
+    if (err || !user) {
+      console.error(err);
+      res.status(404).send({ error: 'Error editing user' });
+    } else {
+      for (let prop in req.body) {
+        user[prop] = req.body[prop];
+      }
+
+      user.save(err => {
+        if (err) {
+          console.error(err);
+          res.status(400).send({error: 'Error editing user'});
+        } else {
+          // User changed their username, so update session info
+          if (req.body.username !== req.session.username) {
+            req.session.username = req.body.username;
+          }
+          res.status(200).send();
+        }
+      });
     }
   });
 });

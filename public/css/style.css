@@ -43,7 +43,7 @@ div.header > img {
   height: 35px;
 }
 
-a#edit {
-  text-align: center;
+button#edit {
+  margin: 0 auto;
   display: none;
 }
