@@ -50,5 +50,48 @@ const toggleEditing = () => {
 };
 
 $(document).ready(function() {
+  const username = getParameterByName('username');
+  const templateString = `
+    <table>
+      <thead>
+        <tr>
+          <td>Type</td>
+          <td>Start Date</td>
+          <td>Duration</td>
+          <td># Moves</td>
+          <td></td>
+        </tr>
+      </thead>
+      <tbody>
+        <% _.each(games, (game) => { %>
+          <tr>
+            <td><%- game.type %></td>
+            <td><%- moment(game.startDate).format('MMMM Do YYYY, h:mm:ssa') %></td>
+            <% if (game.endDate){ %>
+              <td><%- moment(game.endDate - game.startDate) %></td>
+            <% } else { %>
+              <td>N/A</td>
+            <% } %>
+            <td><%- game.state.length %></td>
+            <td><a href="/results.html?id=<%- game._id %>">⇗</a></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  `;
+
+  $.ajax({
+    url: `/v1/user/${username}/game`,
+    type: 'GET',
+    success: (games) => {
+      const gameTableTemplate = _.template(templateString);
+      $("table#gameList").html(gameTableTemplate({games}));
+    },
+    error: (err) => {
+      alert('Error loading game list. Please try again.');
+      console.error(err);
+    },
+  });
+
   $('button#edit').click(e => toggleEditing());
 });

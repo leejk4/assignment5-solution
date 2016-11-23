@@ -164,6 +164,19 @@ app.put('/v1/user/:username', function(req, res) {
   });
 });
 
+// Handle GET to retrieve list of all games specified username started
+app.get('/v1/user/:username/game', function(req, res) {
+  Users.findOne({'username': req.params.username}, (err, user) => {
+        Games.find({'creator': user._id}, (err, games) => {
+            if (err) {
+                res.status(401).send({error: 'unable to find list of games'});
+            } else {
+                res.status(200).send(games);
+            }
+        });
+    });
+});
+
 // Handle POST to create a new game
 app.post('/v1/game', function(req, res) {
     if (!req.session.user_id) {
