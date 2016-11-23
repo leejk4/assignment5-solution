@@ -220,12 +220,15 @@ app.get('/v1/game/shuffle', function(req, res) {
 
 // Handle GET to fetch game information
 app.get('/v1/game/:id', function(req, res) {
-    let game = _.findWhere(games, { id: req.params.id.toLowerCase() });
-    if (!game) {
-        res.status(404).send({ error: 'unknown game id' });
-    } else {
+  console.log(req.params.id)
+  Games.findOne({'_id': req.params.id}, (err, game) => {
+      if (err || !game) {
+        console.error(err);
+        res.status(401).send({error: 'unable to find game'});
+      } else {
         res.status(200).send(game);
-    }
+      }
+  });
 });
 
 

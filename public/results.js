@@ -14,11 +14,22 @@ function getParameterByName(name, url) {
 }
 
 $(document).ready(function() {
+  if (localStorage.getItem('username')) {
+    $('a#profile').attr('href', `/profile?username=${localStorage.getItem('username')}`);
+  } else {
+    $('a#profile').remove();
+  }
+
   const gameID = getParameterByName('id');
   $.get(`/v1/game/${gameID}`)
   .done((result) => {
-    $("#duration").html(result.duration);
-    $("#points").html(result.points);
+    $("#name").html(result.name);
+    $("#type").html(result.type);
+    $("#drawNumber").html(result.draw_num);
+    if (result.startDate && result.endDate) {
+      $("#duration").html(result.endDate - result.startDate);
+    }
+    $("#numMoves").html(result.state.length);
   })
   .fail((err) => {
     alert('Error receiving game. Please try again.');
