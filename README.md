@@ -1,59 +1,66 @@
 #Overview
 
-For this assignment you are going to add persistence throughout your application.  You will be adding MongoDB into your application stack, and connecting to it using the MongooseJS Node module.
-
-## Add Mongo and Mongoose (10pts)
-
-I would recommend using Docker and Kitematic to easily install MongoDB on your laptop.  Enhance your index.js so that when you start it running, it connects to your Mongo instance.  This needs to be configurable, since we will need your application to connect to our Mongo instance when we test it.  Your connection should define that it connects to a database named the same as your VUNetID, for example mongodb://localhost:33701/heminggs.  You should not need anything more than a simple connection, so don't worry about any advanced configuration parameters.
-
-## Mongoose Schemas (20pts each)
-
-Develop Mongoose schemas for Users and Games.  You know most of the fields that should be included in each of these schemas.  Think of what else is necessary.  In class we explored the initial stages of support for Users.  Expand on this and leverage this knowledge to complete the Games schema.
-
-_User Schema_
-
-* Username
-* First name
-* Last name
-* Primary email
-* Hashed password (Either bcrypt or sha512)
-* Salt (for password hashing)
-
-_Game Schema_
-
-* Players (An array of refs to Users)
-* Start date
-* End date
-* Status (May use start/end date)
-* Creator (Ref to User)
-* Turn (Again, a ref to a User)
-* State (Array that can hold every step of the state of every type of game)
-* Type (Klondyke, etc.)
-* Deck (Color, etc.)
+For this assignment you are going to add gameplay logic and actions to your application.
 
 
-## Supported Workflows (50pts)
+##Let the User Move a Card (20pts + 2x10pt bonuses)
 
-There are a number of things that need to get upgraded throughout the application.  You need to support CRUD actions for users and games.  This means that a user should be able to register, log in and out, view profiles, modify their profile, and set their account to inactive.  A user should also be able to create a new game, and mark a game as either deleted or completed (these are both valid choices).
+In an earlier assignment you enabled users to move a card, but there was no game structure at that point.  Now you must allow the user to move one or more cards:
 
-* The login page itself doesn't need to change, but the server side now needs to properly support user login and password verification. (5pts)
+ * From one of the seven piles to another of the seven piles (one or more cards)
+ * From one of the seven piles to one of the four stacks (one card)
+ * From one of the four stacks to one of the seven piles (one card)
+ * From the discard pile to one of the seven piles (one card)
 
-* From the previous assignment the profile page should recognize if the user is logged in or not and provide the appropriate links to login/register or profile/logout.
+The simplest way of approaching this is to maintain some state in the client.  The user clicks some card once to select it (and the cards below it in a pile) and then clicks another card to identify where the card is to be moved.  The user should not be able to click a card that is face-down.
 
-* The registration page itself doesn't need to change, but the server side now need to properly support creation of documents in the Users collection in the database. (5pts)
+We can capture the requested move in JSON as follows:
 
-* The profile page should show basic profile information for any registered user.  If the user is logged in and looking at their own page they should have the option to edit their profile.  This information should update the document in the database.  Below the user's profile should be a list of all games they started (since we can not complete games yet).  Don't list all of the info for each game, only show Type, Date, Duration and number of moves.  Clicking on a game should take you to the review game page.  There should also be a link to create a new game.  Render the basic user profile on the server-side with a Pug template, and the list of games should be fetched with an AJAX call and rendered with an Underscore template on the client. (20pts)
+```{ cards: [{"suit": "clubs", "value": 7}], src: "pile1", dst: "stack2" }```
 
-* The game creation page itself doesn't need to change, but the server-side needs to properly support game creation in the Games collection. (5pts)
+Print out this structure for the requested move to get your points.  We are going to send this to the server shortly.
 
-* The review games page should allow the user to see details about the selected game.  Since we don't have moves or the ability to change much, just have nice placeholders for these details.  Think about how you could show a list of individual moves. (20pts).
+***BONUS***: In addition to the two-click method, allow the user to drag-and-drop card(s) from the source to the destination.
+
+***BONUS***: On the first click visually highlight the card(s) that are being selected.  Once one or more cards have been selected pressing the 'ESC' key or clicking on a face-down card will deselect the cards, removing the highlighting.
+
+
+##Validate Moves (50pts)
+
+Implement a server-side module that exports one function.  Here is the starting point of what I am looking for:
+
+```
+let validMoves = function(state) {
+    let results = [];
+    ...
+    return results;
+};
+
+module.exports = validMoves;
+```
+
+It takes in a "state" object as described in assignment 3. It must output a list of all valid moves, each in the format specified above.  _Hint_: for now you only need to consider the face-up cards in the piles and the top card in each of the stacks and discard.  There actually aren't that many combinations!
+
+
+
+##Send the Move Request (30pts)
+
+Now that our clients are generating move JSONs, and we have some means of knowing if they are valid or not, we need to bring it all together.
+
+* After the user has clicked the second card to generate the move JSON, execute an AJAX PUT to /v1/game/:gameID with the JSON data for the move
+* The server-side must have a route handler that receives this request.  It must validate that the user is logged in, is the owner of the game
+* Finally, we have to make sure the move is valid.  So call validMoves() with game's state info.  Now all you need to do is check the requested move against the list of valid moves.
+* If the requested move is not valid, send an appropriate error back to the client
+* If the move is valid, update the game's state, push the new state into the state array, save the document to the DB and send success, and the new state, back to the client
+* If the client should receive an error, restore the visual state to match the valid prior state
+* If the client should receive a success, update the visual state to match the send new state
 
 
 ##Grading Criteria:
 
-Point totals for each criteria are listed above.  Meet the description above and you get all of the points.  As functionality isn't working, visual styling is not as desired, or things are simplly missing, points will be deducted.
+Point totals for each criteria are listed above.  Meet the description above and you get all of the points.  As functionality isn't working, visual styling is not as desired, or things are simply missing, points will be deducted.
 
-Submission:
+##Submission:
 
 Ensure your files are in a clean and organized folder hierarchy.  Make sure your package.json is complete and up-to-date.  Commit all necessary files (not node_modules) to your GitHub repository.  Grading will follow the same script as last assignment:
 
