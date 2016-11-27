@@ -2,6 +2,10 @@
 
 const NUM_PILES = 7;
 
+// Keep a mapping of id to card in the state. Each card has a unique ID (0-51).
+// This allows us to easily map DOM objects (say, from event handlers) to our state.
+const IdStateCardMap = {};
+
 const constructKlondike = (cards) => {
   const gameState = {
     stack1: [],
@@ -25,42 +29,52 @@ const constructKlondike = (cards) => {
   return gameState;
 };
 
-const generateCardImg = (card, row, col, stackCount = 0) => {
+const generateCardImg = (card, key, id, row, col, stackCount = 0) => {
   const imgURL = card.up ? `img/${card.value}_of_${card.suit}.png` : 'img/card_back.png';
   const CARD_WIDTH = 200;
   const CARD_HEIGHT = 290;
   const CELL_PADDING = 25;
   const top = (CARD_HEIGHT + CELL_PADDING) * row + CELL_PADDING + (stackCount * 20);
   const left = (CARD_WIDTH + CELL_PADDING) * col + CELL_PADDING;
-  return `<img class='card' src='${imgURL}' style='top:${top}px;left:${left}px;' />`;
+
+  // Add the <id, card> entry to the map
+  IdStateCardMap[`card-${id}`] = {location: key, card};
+
+  return `<img class='card' id='card-${id}' src='${imgURL}' style='top:${top}px;left:${left}px;' />`;
 };
 
 const layoutKlondike = (gameState) => {
+  // Counter to give each card in state a unique ID (0-51)
+  let counter = 0;
   // It's faster to build up the HTML and only alter the DOM once.
   let gameContent = '';
   gameState.draw.forEach(card => {
-    gameContent += generateCardImg(card, 0, 0);
+    gameContent += generateCardImg(card, 'draw', counter++, 0, 0);
   });
   gameState.discard.forEach(card => {
-    gameContent += generateCardImg(card, 0, 1);
+    gameContent += generateCardImg(card, 'discard', counter++, 0, 1);
   });
   for (let i = 1; i < 5; i++) {
     const key = `stack${i}`;
     gameState[key].forEach(card => {
-      gameContent += generateCardImg(card, 0, i + 2);
+      gameContent += generateCardImg(card, key, counter++, 0, i + 2);
     });
   }
   for (let i = 1; i < NUM_PILES + 1; i++) {
     const key = `pile${i}`;
     gameState[key].forEach((card, idx) => {
-      gameContent += generateCardImg(card, 1, i - 1, idx);
+      gameContent += generateCardImg(card, key, counter++, 1, i - 1, idx);
     });
   }
+
   $('div#game').html(gameContent);
-  $('img').draggable();
+  // $('img').draggable();
 };
 
 $(document).ready(function() {
+  let gameState = null;
+  let move = null;
+
   let startX, startY;
 
   $('a#profile').attr('href', `/profile?username=${localStorage.getItem('username')}`);
@@ -83,11 +97,33 @@ $(document).ready(function() {
     }
   });
 
-  $('img').on('mousedown', function(e) {
-    e.preventDefault();
-    const splitSource = e.target.src.split('/');
-    const cardName = splitSource[splitSource.length - 1];
-    console.log(`Clicked card: ${cardName}`);
+  $(document).on('click', 'img', (e) => {
+    const {location, card} = IdStateCardMap[e.target.id];
+
+    // Ignore cards that are face down
+    if (!card.up) {
+      return;
+    }
+
+    if (!move) { // 1st click
+      const stack = gameState[location];
+      const startIdx = stack.indexOf(card);
+      const endIdx = stack.length;
+
+      move = {
+        // Ensure we move all cards in the stack on top of the selected card
+        cards: stack.slice(startIdx, endIdx),
+        src: location,
+        dst: null,
+      };
+    } else { // 2nd click
+      move.dst = location;
+
+      // TODO: Finalize the move!
+      console.log(move);
+
+      move = null;
+    }
   });
 
   // Fetch random deck from server
@@ -95,7 +131,7 @@ $(document).ready(function() {
     type: 'get',
     url: '/v1/game/shuffle?jokers=false',
     success: (cards) => {
-      const gameState = constructKlondike(cards);
+      gameState = constructKlondike(cards);
       layoutKlondike(gameState);
       localStorage.setItem('gameState', JSON.stringify(gameState));
     },
