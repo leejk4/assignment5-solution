@@ -1,6 +1,11 @@
 'use strict';
 
 const NUM_PILES = 7;
+const KING = 13;
+const QUEEN = 12;
+const JACK = 11;
+const ACE = 1;
+
 
 // Keep a mapping of id to card in the state. Each card has a unique ID (0-51).
 // This allows us to easily map DOM objects (say, from event handlers) to our state.
@@ -30,7 +35,24 @@ const constructKlondike = (cards) => {
 };
 
 const generateCardImg = (card, key, id, row, col, stackCount = 0) => {
-  const imgURL = card.up ? `img/${card.value}_of_${card.suit}.png` : 'img/card_back.png';
+  let imgName = null;
+  switch (card.value) {
+    case KING:
+      imgName = 'king';
+      break;
+    case QUEEN:
+      imgName = 'queen';
+      break;
+    case JACK:
+      imgName = 'jack';
+      break;
+    case ACE:
+      imgName = 'ace';
+      break;
+    default:
+      imgName = card.value;
+  }
+  const imgURL = card.up ? `img/${imgName}_of_${card.suit}.png` : 'img/card_back.png';
   const CARD_WIDTH = 200;
   const CARD_HEIGHT = 290;
   const CELL_PADDING = 25;
@@ -72,30 +94,15 @@ const layoutKlondike = (gameState) => {
 };
 
 $(document).ready(function() {
+  const gameID = getParameterByName('id');
+  if (!gameID) {
+    window.location = '/start.html';
+  }
+  const localStorageKey = `gameState-${gameID}`;
   let gameState = null;
   let move = null;
 
-  let startX, startY;
-
   $('a#profile').attr('href', `/profile?username=${localStorage.getItem('username')}`);
-
-  $('body').mousedown((e) => {
-    startX = e.clientX;
-    startY = e.clientY;
-    console.log(`Mousedown at: ${startX}, ${startY}`);
-  });
-
-  $('body').mouseup((e) => {
-    const endX = e.clientX;
-    const endY = e.clientY;
-    console.log(`Mouseup at: ${e.clientX}, ${e.clientY}`);
-    if (startX !== endX || startY !== endY) {
-      const v = Math.pow((endX - startX), 2);
-      const u = Math.pow((endY - startY), 2);
-      const dist = Math.sqrt(v + u);
-      console.log(`Mouse dragged: ${dist}`);
-    }
-  });
 
   $(document).on('click', 'img', (e) => {
     const {location, card} = IdStateCardMap[e.target.id];
@@ -119,24 +126,78 @@ $(document).ready(function() {
     } else { // 2nd click
       move.dst = location;
 
-      // TODO: Finalize the move!
-      console.log(move);
+      $.ajax({
+        type: 'put',
+        url: `/v1/game/${gameID}`,
+        data: {
+          move: move,
+        },
+        success: ({state}) => {
+          // Update localstorage and the UI with the new state
+          localStorage.setItem(localStorageKey, state);
+          gameState = JSON.parse(state);
+          layoutKlondike(gameState);
+        },
+        error: (xhr, status, error) => {
+          // Invalid move
+          if (xhr.status === 400) {
+          } else {
+            alert('Error sending move to server.');
+          }
+        },
+      });
 
       move = null;
     }
   });
 
-  // Fetch random deck from server
-  $.ajax({
-    type: 'get',
-    url: '/v1/game/shuffle?jokers=false',
-    success: (cards) => {
-      gameState = constructKlondike(cards);
-      layoutKlondike(gameState);
-      localStorage.setItem('gameState', JSON.stringify(gameState));
-    },
-    error: (xhr, status, error) => {
-      alert('Error retrieving shuffled cards.');
-    },
-  });
+  if (localStorage.getItem(localStorageKey)) {
+    gameState = JSON.parse(localStorage.getItem(localStorageKey));
+    layoutKlondike(gameState);
+  } else {
+    // Fetch most recent state from server
+    $.ajax({
+      type: 'get',
+      url: `/v1/game/${gameID}`,
+      success: (game) => {
+        // If we've started the game already, update localstorage to represent latest state
+        if (game.state.length > 0) {
+          gameState = JSON.parse(game.state[game.state.length - 1]);
+          localStorage.setItem(localStorageKey, JSON.stringify(gameState));
+          layoutKlondike(gameState);
+        } else {
+          // We haven't started this game yet, so fetch random deck from server...
+          $.ajax({
+            type: 'get',
+            url: '/v1/game/shuffle?jokers=false',
+            success: (cards) => {
+              gameState = constructKlondike(cards);
+              // ... and update the state on the server to represent
+              // Note: if this seems round-about / redundant, that's bc it is :-)
+              $.ajax({
+                type: 'put',
+                url: `/v1/game/${gameID}`,
+                data: {
+                  state: JSON.stringify(gameState),
+                },
+                success: () => {
+                  layoutKlondike(gameState);
+                  localStorage.setItem(localStorageKey, JSON.stringify(gameState));
+                },
+                error: (xhr, status, error) => {
+                  alert('Error saving initial gamestate.');
+                },
+              });
+            },
+            error: (xhr, status, error) => {
+              alert('Error retrieving shuffled cards.');
+            },
+          });
+        }
+      },
+      error: (xhr, status, error) => {
+        alert('Error getting game from server.');
+      },
+    });
+  }
 });

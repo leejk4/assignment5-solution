@@ -3,7 +3,7 @@
 const _ = require('underscore');
 
 const CARDS = [
-  { 'suit': 'clubs', 'value': 'Ace' },
+  { 'suit': 'clubs', 'value': 1 }, // Ace
   { 'suit': 'clubs', 'value': 2 },
   { 'suit': 'clubs', 'value': 3 },
   { 'suit': 'clubs', 'value': 4 },
@@ -13,10 +13,10 @@ const CARDS = [
   { 'suit': 'clubs', 'value': 8 },
   { 'suit': 'clubs', 'value': 9 },
   { 'suit': 'clubs', 'value': 10 },
-  { 'suit': 'clubs', 'value': 'Jack' },
-  { 'suit': 'clubs', 'value': 'Queen' },
-  { 'suit': 'clubs', 'value': 'King' },
-  { 'suit': 'diamonds', 'value': 'Ace' },
+  { 'suit': 'clubs', 'value': 11 }, // Jack
+  { 'suit': 'clubs', 'value': 12 }, // Queen
+  { 'suit': 'clubs', 'value': 13 }, // King
+  { 'suit': 'diamonds', 'value': 1 }, // Ace
   { 'suit': 'diamonds', 'value': 2 },
   { 'suit': 'diamonds', 'value': 3 },
   { 'suit': 'diamonds', 'value': 4 },
@@ -26,10 +26,10 @@ const CARDS = [
   { 'suit': 'diamonds', 'value': 8 },
   { 'suit': 'diamonds', 'value': 9 },
   { 'suit': 'diamonds', 'value': 10 },
-  { 'suit': 'diamonds', 'value': 'Jack' },
-  { 'suit': 'diamonds', 'value': 'Queen' },
-  { 'suit': 'diamonds', 'value': 'King' },
-  { 'suit': 'hearts', 'value': 'Ace' },
+  { 'suit': 'diamonds', 'value': 11 }, // Jack
+  { 'suit': 'diamonds', 'value': 12 }, // Queen
+  { 'suit': 'diamonds', 'value': 13 }, // King
+  { 'suit': 'hearts', 'value': 1 }, // Ace
   { 'suit': 'hearts', 'value': 2 },
   { 'suit': 'hearts', 'value': 3 },
   { 'suit': 'hearts', 'value': 4 },
@@ -39,10 +39,10 @@ const CARDS = [
   { 'suit': 'hearts', 'value': 8 },
   { 'suit': 'hearts', 'value': 9 },
   { 'suit': 'hearts', 'value': 10 },
-  { 'suit': 'hearts', 'value': 'Jack' },
-  { 'suit': 'hearts', 'value': 'Queen' },
-  { 'suit': 'hearts', 'value': 'King' },
-  { 'suit': 'spades', 'value': 'Ace' },
+  { 'suit': 'hearts', 'value': 11 }, // Jack
+  { 'suit': 'hearts', 'value': 12 }, // Queen
+  { 'suit': 'hearts', 'value': 13 }, // King
+  { 'suit': 'spades', 'value': 1 }, // Ace
   { 'suit': 'spades', 'value': 2 },
   { 'suit': 'spades', 'value': 3 },
   { 'suit': 'spades', 'value': 4 },
@@ -52,9 +52,9 @@ const CARDS = [
   { 'suit': 'spades', 'value': 8 },
   { 'suit': 'spades', 'value': 9 },
   { 'suit': 'spades', 'value': 10 },
-  { 'suit': 'spades', 'value': 'Jack' },
-  { 'suit': 'spades', 'value': 'Queen' },
-  { 'suit': 'spades', 'value': 'King' },
+  { 'suit': 'spades', 'value': 11 }, // Jack
+  { 'suit': 'spades', 'value': 12 }, // Queen
+  { 'suit': 'spades', 'value': 13 }, // King
 ];
 
 const JOKERS = [

@@ -9,6 +9,8 @@ let express         = require('express'),
     md5             = require('md5'),
     session         = require('express-session');
 
+const validMoves = require('./validMoves');
+
 const Users = require('./db').Users;
 const Games = require('./db').Games;
 const profileView = pug.compileFile('src/views/profile.pug');
@@ -220,7 +222,6 @@ app.get('/v1/game/shuffle', function(req, res) {
 
 // Handle GET to fetch game information
 app.get('/v1/game/:id', function(req, res) {
-  console.log(req.params.id)
   Games.findOne({'_id': req.params.id}, (err, game) => {
       if (err || !game) {
         console.error(err);
@@ -231,6 +232,79 @@ app.get('/v1/game/:id', function(req, res) {
   });
 });
 
+// Handle PUT to make a move for a game
+app.put('/v1/game/:id', function(req, res) {
+  if (!req.session.user_id) {
+    return res.status(401).send({ error: 'unauthorized' });
+  }
+
+  // If the body has a state, the client must be sending the initial game state.
+  if (req.body.state) {
+    Games.findOne({'_id': req.params.id}, (err, game) => {
+      if (err || !game) {
+        console.error(err);
+        res.status(401).send({error: 'unable to find game'});
+      } else {
+        game.state.push(req.body.state);
+        game.save((err, game) => {
+          if (err) {
+            console.error(err);
+            res.status(400).send({error: 'Error updating game state'});
+          } else {
+            return res.status(200).send();
+          }
+        });
+      }
+    });
+  } else {
+    Games.findOne({'_id': req.params.id}, (err, game) => {
+      if (err || !game) {
+        console.error(err);
+        res.status(401).send({error: 'unable to find game'});
+      } else {
+        if (game.creator != req.session.user_id) {
+          return res.status(401).send({ error: 'unauthorized' });
+        }
+
+        // Guaranteed to have at least an initial state.
+        const state = JSON.parse(game.state[game.state.length - 1]);
+        const move = req.body.move;
+        const isValid = validMoves(state).some(m => {
+          if (m.dst === move.dst && m.src === move.src && m.cards.length === move.cards.length) {
+            return m.cards.every((lCard, idx) => {
+              const rCard = move.cards[idx];
+              return lCard.suit === rCard.suit &&
+                lCard.up == (rCard.up === 'true') &&
+                lCard.value == rCard.value;
+            });
+          }
+        });
+
+        if (isValid) {
+          // Update the state to reflect the move
+          move.cards.forEach(card => {
+            const cardIdx = state[move.src].indexOf(card);
+            const removedCards = state[move.src].splice(cardIdx, 1);
+            state[move.dst].push(removedCards[0]);
+          });
+
+          // Update and save the model in the DB
+          game.state.push(JSON.stringify(state));
+          game.save((err, game) => {
+            if (err) {
+              console.error(err);
+              res.status(400).send({error: 'Error updating game state'});
+            } else {
+              return res.status(200).send({ state: game.state[game.state.length - 1] });
+            }
+          });
+        } else {
+          return res.status(400).send({ error: 'invalid move' });
+        }
+      }
+    });
+  }
+});
 
 let server = app.listen(8080, function () {
     console.log('Example app listening on ' + server.address().port);
