@@ -103,27 +103,6 @@ const validMoves = function(state) {
       }
     }
 
-    // Generate possibilies moving from each stack
-    for (let i = 1; i < NUM_STACKS + 1; i++) {
-      const fromStack = state[`stack${i}`];
-      const card = fromStack[fromStack.length - 1];
-      if (fromStack.length === 0) {
-        continue;
-      }
-
-      // Check if we can move it to a pile
-      for (let j = 1; j < NUM_PILES + 1; j++) {
-        const toPile = state[`pile${i}`];
-        if (canMoveToPile(card, toPile)) {
-          results.push({
-            cards: [card],
-            src: `stack${i}`,
-            dst: `pile${i}`,
-          });
-        }
-      }
-    }
-
     return results;
 };
 
